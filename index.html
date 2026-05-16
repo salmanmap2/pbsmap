@@ -426,5 +426,13 @@
   </script>
   <script src="js/db.js"></script>
   <script>checkLogin();</script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    }
+  </script>
 </body>
 </html>

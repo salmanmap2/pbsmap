@@ -1,102 +1,22 @@
 /**
- * PBS Map — Service Worker
+ * PBS Map — Service Worker (minimal)
+ * শুধু PWA install support — কোনো request intercept করে না
  */
 
-const CACHE_NAME = 'pbsmap-v1';
-
-const STATIC_ASSETS = [
-  './home.html',
-  './login.html',
-  './index.html',
-  './css/style.css',
-  './css/home.css',
-  './css/auth.css',
-  './css/landing.css',
-  './js/config.js',
-  './js/db.js',
-  './js/api.js',
-  './js/meter-store.js',
-  './js/meter-detail.js',
-  './js/home.js',
-  './img/favicon.svg',
-  './img/icon-192.svg',
-  './img/icon-512.svg',
-  './img/default-avatar.svg',
-  './img/h.svg',
-  './img/s.svg',
-  './img/irr.svg',
-  './img/ind.svg',
-  './img/com.svg',
-  './img/char.svg',
-  './manifest.json',
-];
+const CACHE_NAME = 'pbsmap-v2';
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(c => c.addAll(STATIC_ASSETS))
-  );
+  // পুরনো SW কে সরিয়ে সাথে সাথে active হও
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
+  // সব পুরনো cache মুছে দাও
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-/** Response টা cache করার যোগ্য কিনা */
-function cacheable(res) {
-  if (!res) return false;
-  if (!res.ok) return false;           // 4xx/5xx বাদ
-  if (res.redirected) return false;    // redirect হয়েছে — cache করা যাবে না
-  if (res.type === 'opaque') return false;
-  if (res.type === 'opaqueredirect') return false;
-  return true;
-}
-
-self.addEventListener('fetch', e => {
-  const { request } = e;
-
-  // http/https এবং GET only — বাকি সব SW bypass
-  if (!request.url.startsWith('http') || request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-
-  // API calls — SW bypass
-  if (url.pathname.startsWith('/api/')) return;
-
-  // Map tiles — SW bypass (IndexedDB তে আলাদাভাবে cache হয়)
-  if (url.hostname.includes('tile.openstreetmap.org')) return;
-
-  // Same-origin: cache-first, network fallback
-  if (url.origin === self.location.origin) {
-    e.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached;
-
-        return fetch(request, { redirect: 'follow' }).then(res => {
-          if (cacheable(res)) {
-            const toCache = res.clone();
-            caches.open(CACHE_NAME).then(c => c.put(request, toCache));
-          }
-          return res;
-        }).catch(() => caches.match('./home.html'));
-      })
-    );
-    return;
-  }
-
-  // External (Leaflet CDN, Google Fonts): network-first, cache fallback
-  e.respondWith(
-    fetch(request, { redirect: 'follow' }).then(res => {
-      if (cacheable(res)) {
-        const toCache = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(request, toCache));
-      }
-      return res;
-    }).catch(() => caches.match(request))
+      Promise.all(keys.map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
+
+// fetch handler নেই — কোনো request intercept হবে না

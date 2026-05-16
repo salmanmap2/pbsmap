@@ -756,7 +756,11 @@
   <script src="js/meter-detail.js"></script>
   <script src="js/home.js"></script>
   <script>
+    // পুরনো SW unregister করো
     if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
       navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
     }
   </script>

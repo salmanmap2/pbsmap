@@ -2211,3 +2211,68 @@ async function rpLoadSummary() {
 function rpSaveSettings() {
   showToast('✅ সেটিং সেভ হয়েছে।');
 }
+
+/* ── PRINT ── */
+function rpPrint() {
+  const isListTab    = _rpCurrentTab === 'list';
+  const route        = isListTab
+    ? (document.getElementById('rpRouteSelect')?.value || '')
+    : (document.getElementById('rpSummaryRoute')?.value || '');
+  const rows         = isListTab ? _rpListFiltered : null;
+  const printArea    = document.getElementById('rpPrintArea');
+  if (!printArea) return;
+
+  const now    = new Date().toLocaleString('bn-BD', { dateStyle: 'long', timeStyle: 'short' });
+  const month  = new Date().toLocaleString('bn-BD', { month: 'long', year: 'numeric' });
+  const title  = isListTab ? 'রিডিং তালিকা' : 'রিডিং সারসংক্ষেপ';
+  const routeLabel = route || 'সকল রুট';
+
+  let content = `
+    <div class="rp-print-title">PBS Map — ${title}</div>
+    <div class="rp-print-meta">
+      রুট: <strong>${routeLabel}</strong> &nbsp;|&nbsp;
+      মাস: <strong>${month}</strong> &nbsp;|&nbsp;
+      মুদ্রণ: ${now}
+    </div>`;
+
+  if (isListTab) {
+    if (!rows || !rows.length) {
+      content += '<p style="color:#666">কোনো রিডিং নেই।</p>';
+    } else {
+      const thead = `<tr>
+        <th>#</th><th>অ্যাকাউন্ট</th><th>মিটার নং</th>
+        <th>গ্রাম</th><th>kWh</th><th>kW</th>
+        <th>kVArh-L</th><th>kVArh-Ld</th><th>সময়</th>
+      </tr>`;
+      const tbody = rows.map((r, i) => {
+        const raw    = r.account_number || '';
+        const accFmt = raw.length >= 7 ? raw.slice(0,3) + '-' + raw.slice(3) : raw || '—';
+        const ts     = r.reading_time
+          ? new Date(r.reading_time).toLocaleString('bn-BD', { dateStyle: 'short', timeStyle: 'short' })
+          : '—';
+        return `<tr>
+          <td>${i + 1}</td>
+          <td class="pt-acc">${accFmt}</td>
+          <td class="pt-acc" style="font-size:9px">${r.meter_number || '—'}</td>
+          <td>${r.village || '—'}</td>
+          <td class="pt-kwh">${r.kwh      ?? '—'}</td>
+          <td class="pt-kwh">${r.kw       ?? '—'}</td>
+          <td class="pt-kwh">${r.kvarh_lag ?? '—'}</td>
+          <td class="pt-kwh">${r.kvarh_led ?? '—'}</td>
+          <td class="pt-time">${ts}</td>
+        </tr>`;
+      }).join('');
+      content += `<table class="rp-print-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table>`;
+      content += `<div class="rp-print-footer">মোট রিডিং: ${rows.length} টি</div>`;
+    }
+  } else {
+    // Summary tab — rpSummaryWrap এর content নাও
+    const summaryWrap = document.getElementById('rpSummaryWrap');
+    if (summaryWrap) {
+      content += `<div style="font-size:11px">${summaryWrap.innerHTML}</div>`;
+    }
+  }
+
+  printArea.innerHTML = content;
+  window.print();
+}

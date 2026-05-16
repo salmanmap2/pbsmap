@@ -211,6 +211,10 @@ function _mdRender() {
   const editBtn = document.getElementById('mdEditBtn');
   if (editBtn) editBtn.classList.toggle('hidden', !_mdCanEdit || !!m._notSynced);
 
+  // Reading button — synced meter এ দেখাও
+  const rdBtn = document.getElementById('mdNoteReadingBtn');
+  if (rdBtn) rdBtn.classList.toggle('hidden', !!m._notSynced || !m.account_id);
+
   // Reset to view mode
   _mdApplyMode(false);
 }
@@ -476,7 +480,7 @@ function _mdNoteRender(notes) {
 
   listEl.innerHTML = '';
   [...sorted].reverse().forEach(note => {
-    const nj        = note.note_json || {};
+    const nj        = typeof note.note_json === 'string' ? _mdParse(note.note_json) : (note.note_json || {});
     const isOwn     = _session && note.note_creator === _session.username;
     const isPending = note.note_id.startsWith('_temp_');
     const picUrl    = nj.creator_pic  || '';
@@ -785,8 +789,12 @@ const RD_FIELDS = {
 };
 
 async function mdReadingOpen() {
-  if (!_mdMeter || !_mdMeter.account_id) {
+  if (!_mdMeter) {
     showToast('⚠️ মিটার লোড হয়নি।');
+    return;
+  }
+  if (!_mdMeter.account_id) {
+    showToast('⚠️ মিটার sync হয়নি — আগে sync করুন।');
     return;
   }
 
@@ -869,28 +877,34 @@ async function mdReadingOpen() {
 function _mdReadingUpdateDiff(key, prev, rawVal) {
   const diffEl = document.getElementById(`rdDiff_${key}`);
   if (!diffEl) return;
-  const val = parseFloat(rawVal);
-  if (prev == null || rawVal === '' || isNaN(val)) {
+  const cleaned = (rawVal || '').trim()
+    .replace(/,/g, '.')
+    .replace(/[০-৯]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x09E0 + 48));
+  const val = parseFloat(cleaned);
+  if (prev == null || cleaned === '' || isNaN(val)) {
     diffEl.textContent = '';
     diffEl.className = 'rd-diff-badge';
     return;
   }
-  const diff = (val - prev).toFixed(2);
+  const diff  = (val - prev).toFixed(2);
   const isPos = parseFloat(diff) >= 0;
-  diffEl.className = 'rd-diff-badge ' + (isPos ? 'rd-diff-pos' : 'rd-diff-neg');
-  diffEl.textContent = (isPos ? '+' : '') + diff;
+  diffEl.className    = 'rd-diff-badge ' + (isPos ? 'rd-diff-pos' : 'rd-diff-neg');
+  diffEl.textContent  = (isPos ? '+' : '') + diff;
 }
 
 async function _mdGetLastReading(accountId) {
   try {
     const notes = await ncGetByAccount(accountId);
     const rdNotes = notes
-      .filter(n => (n.note_json || {}).type === 'reading')
+      .filter(n => {
+        const nj = typeof n.note_json === 'string' ? _mdParse(n.note_json) : (n.note_json || {});
+        return nj.type === 'reading';
+      })
       .sort((a, b) => (a.timestamp || '') < (b.timestamp || '') ? 1 : -1);
     if (!rdNotes.length) return null;
     const last = rdNotes[0];
-    // Return { reading: {...}, _ts: timestamp }
-    return { reading: last.note_json.reading || {}, _ts: last.timestamp };
+    const nj = typeof last.note_json === 'string' ? _mdParse(last.note_json) : (last.note_json || {});
+    return { reading: nj.reading || {}, _ts: last.timestamp };
   } catch { return null; }
 }
 
@@ -911,7 +925,12 @@ async function mdReadingSave() {
   let hasAny = false;
   for (const f of fields) {
     const inp = document.getElementById(`rdInput_${f.key}`);
-    const val = inp ? parseFloat(inp.value) : NaN;
+    if (!inp || inp.value.trim() === '') continue;
+    // comma বা space সরাও, Bengali digits → ASCII
+    const cleaned = inp.value.trim()
+      .replace(/,/g, '.')          // comma → dot
+      .replace(/[০-৯]/g, d => String.fromCharCode(d.charCodeAt(0) - 0x09E0 + 48)); // Bengali → ASCII
+    const val = parseFloat(cleaned);
     if (!isNaN(val)) { reading[f.key] = val; hasAny = true; }
   }
   if (!hasAny) {

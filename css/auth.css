@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════
+   PBS Map — Auth Page Styles
+   ═══════════════════════════════════════════════ */
+
+.auth-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Animated Background ── */
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: .12;
+  animation: float 8s ease-in-out infinite;
+}
+.bg-circle.c1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, #2563eb, transparent);
+  top: -150px; left: -100px;
+  animation-delay: 0s;
+}
+.bg-circle.c2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, #0ea5e9, transparent);
+  bottom: -100px; right: -80px;
+  animation-delay: 3s;
+}
+.bg-circle.c3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #6366f1, transparent);
+  top: 40%; left: 60%;
+  animation-delay: 5s;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-30px) scale(1.05); }
+}
+
+/* ── Container ── */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Logo ── */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  color: white;
+}
+.logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 15px rgba(37,99,235,.4);
+}
+.logo-text {
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: -0.5px;
+  color: rgba(255,255,255,.9);
+}
+.logo-text strong {
+  font-weight: 700;
+  color: white;
+}
+
+/* ── Panel ── */
+.auth-panel {
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  box-shadow: 0 25px 50px rgba(0,0,0,.3), 0 0 0 1px rgba(255,255,255,.1);
+  display: none;
+  animation: panelIn .3s ease;
+}
+.auth-panel.active { display: block; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.panel-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 4px;
+}
+.panel-sub {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+/* ── Form Row ── */
+.form-row-end {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--gray-400);
+  font-size: 13px;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* ── Google Button ── */
+.google-btn-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+/* ── Switch Text ── */
+.switch-text {
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 16px;
+}
+.switch-text a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+.switch-text a:hover { text-decoration: underline; }
+
+/* ── Responsive ── */
+@media (max-width: 440px) {
+  .auth-panel { padding: 24px 20px; border-radius: var(--radius-lg); }
+  .auth-body  { padding: 16px; align-items: flex-start; padding-top: 40px; }
+}
+
+/* ── Back to home link ── */
+.auth-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  background: rgba(255,255,255,.1);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.15);
+  transition: all .2s;
+}
+.auth-back:hover {
+  color: white;
+  background: rgba(255,255,255,.2);
+}

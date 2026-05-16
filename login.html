@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PBS Map — লগইন</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="js/config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="auth-body">
+
+  <div class="auth-bg">
+    <div class="bg-circle c1"></div>
+    <div class="bg-circle c2"></div>
+    <div class="bg-circle c3"></div>
+  </div>
+
+  <!-- Back to home -->
+  <a href="index.html" class="auth-back">← হোমে ফিরুন</a>
+
+  <div class="auth-container" id="authContainer">
+
+    <div class="auth-logo">
+      <div class="logo-icon">⚡</div>
+      <span class="logo-text">PBS<strong>Map</strong></span>
+    </div>
+
+    <!-- ══ LOGIN ══ -->
+    <div class="auth-panel active" id="panelLogin">
+      <h2 class="panel-title">স্বাগতম</h2>
+      <p class="panel-sub">আপনার অ্যাকাউন্টে লগইন করুন</p>
+
+      <div id="loginError" class="alert alert-error hidden"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label>ইমেইল / ইউজারনেম / মোবাইল</label>
+          <input type="text" id="loginIdentifier" placeholder="ইমেইল, ইউজারনেম বা মোবাইল নম্বর" autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label>পাসওয়ার্ড</label>
+          <div class="input-eye">
+            <input type="password" id="loginPassword" placeholder="পাসওয়ার্ড দিন" autocomplete="current-password" />
+            <button type="button" class="eye-btn" onclick="togglePass('loginPassword',this)">👁</button>
+          </div>
+        </div>
+        <div class="form-row-end">
+          <a href="#" class="link-sm" onclick="showPanel('panelForgot');return false;">পাসওয়ার্ড ভুলে গেছেন?</a>
+        </div>
+        <button type="submit" class="btn-primary" id="loginBtn">
+          <span class="btn-text">লগইন করুন</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+      </form>
+
+      <div class="divider"><span>অথবা</span></div>
+      <div id="googleBtnContainer" class="google-btn-wrap"></div>
+
+      <p class="switch-text">অ্যাকাউন্ট নেই? <a href="#" onclick="showPanel('panelSignup');return false;">নিবন্ধন করুন</a></p>
+      <p class="switch-text"><a href="terms.html" target="_blank">শর্তাবলী ও গোপনীয়তা নীতি</a></p>
+    </div>
+
+    <!-- ══ SIGNUP ══ -->
+    <div class="auth-panel" id="panelSignup">
+      <h2 class="panel-title">নতুন অ্যাকাউন্ট</h2>
+      <p class="panel-sub">বিনামূল্যে নিবন্ধন করুন</p>
+
+      <div id="signupError"   class="alert alert-error   hidden"></div>
+      <div id="signupSuccess" class="alert alert-success hidden"></div>
+
+      <form id="signupForm" novalidate>
+        <div class="form-group">
+          <label>পূর্ণ নাম</label>
+          <input type="text" id="signupName" placeholder="আপনার পূর্ণ নাম" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label>ইমেইল <span class="req">*</span></label>
+          <input type="email" id="signupEmail" placeholder="আপনার ইমেইল ঠিকানা" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label>পাসওয়ার্ড <span class="req">*</span></label>
+          <div class="input-eye">
+            <input type="password" id="signupPassword" placeholder="কমপক্ষে ৬ অক্ষর" autocomplete="new-password" />
+            <button type="button" class="eye-btn" onclick="togglePass('signupPassword',this)">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" id="signupBtn">
+          <span class="btn-text">নিবন্ধন করুন</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+      </form>
+
+      <div class="divider"><span>অথবা</span></div>
+      <div id="googleSignupBtn" class="google-btn-wrap"></div>
+
+      <p class="switch-text">ইতিমধ্যে অ্যাকাউন্ট আছে? <a href="#" onclick="showPanel('panelLogin');return false;">লগইন করুন</a></p>
+    </div>
+
+    <!-- ══ FORGOT PASSWORD ══ -->
+    <div class="auth-panel" id="panelForgot">
+      <h2 class="panel-title">পাসওয়ার্ড পুনরুদ্ধার</h2>
+      <p class="panel-sub">আপনার ইমেইলে OTP পাঠানো হবে</p>
+
+      <div id="forgotError"   class="alert alert-error   hidden"></div>
+      <div id="forgotSuccess" class="alert alert-success hidden"></div>
+
+      <div id="forgotStep1">
+        <form id="forgotForm" novalidate>
+          <div class="form-group">
+            <label>ইমেইল ঠিকানা</label>
+            <input type="email" id="forgotEmail" placeholder="নিবন্ধিত ইমেইল দিন" />
+          </div>
+          <button type="submit" class="btn-primary" id="forgotBtn">
+            <span class="btn-text">OTP পাঠান</span>
+            <span class="btn-loader hidden"></span>
+          </button>
+        </form>
+      </div>
+
+      <div id="forgotStep2" class="hidden">
+        <form id="resetForm" novalidate>
+          <div class="form-group">
+            <label>OTP কোড</label>
+            <input type="text" id="resetOtp" placeholder="৬ সংখ্যার OTP" maxlength="6" inputmode="numeric" />
+          </div>
+          <div class="form-group">
+            <label>নতুন পাসওয়ার্ড</label>
+            <div class="input-eye">
+              <input type="password" id="resetPassword" placeholder="নতুন পাসওয়ার্ড" autocomplete="new-password" />
+              <button type="button" class="eye-btn" onclick="togglePass('resetPassword',this)">👁</button>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary" id="resetBtn">
+            <span class="btn-text">পাসওয়ার্ড পরিবর্তন করুন</span>
+            <span class="btn-loader hidden"></span>
+          </button>
+        </form>
+      </div>
+
+      <p class="switch-text"><a href="#" onclick="showPanel('panelLogin');return false;">← লগইনে ফিরুন</a></p>
+    </div>
+
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

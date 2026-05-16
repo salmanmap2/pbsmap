@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PBS Map — ম্যাপ</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/home.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/config.js"></script>
+</head>
+<body class="home-body">
+
+  <!-- ══ FULL-PAGE MAP ══ -->
+  <div id="mapContainer" class="map-container">
+    <div id="map"></div>
+
+    <!-- No-office overlay -->
+    <div id="noOfficeOverlay" class="no-office-overlay hidden">
+      <div class="no-office-card">
+        <div class="no-office-icon">🏢</div>
+        <h3>কোনো অফিসে যুক্ত নেই</h3>
+        <p>একটি PBS ও অফিস বেছে নিয়ে যোগ দেওয়ার অনুরোধ পাঠান</p>
+        <button class="btn-primary" onclick="openJoinModal()">অফিসে যোগ দিন</button>
+      </div>
+    </div>
+
+    <!-- Map loader -->
+    <div id="mapLoader" class="map-loader">
+      <div class="spinner"></div>
+      <p>ম্যাপ লোড হচ্ছে…</p>
+    </div>
+  </div>
+
+  <!-- ══ OFFICE BADGE (hidden) ══ -->
+  <div id="officeBadge" class="office-badge hidden">
+    <span id="officeBadgeName"></span>
+  </div>
+
+  <!-- ══ SEARCH BOX ══ -->
+  <div class="srch-wrap" id="srchWrap">
+    <form class="srch-box" role="search" autocomplete="off" onsubmit="return false;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="srch-icon">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search" id="srchInput" class="srch-input"
+        name="srch-query"
+        placeholder="Search account / meter no."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        oninput="srchQuery(this.value)"
+        onkeydown="if(event.key==='Escape')srchClear()" />
+      <button class="srch-clear hidden" id="srchClearBtn" type="button" onclick="srchClear()">✕</button>
+    </form>
+    <div class="srch-results hidden" id="srchResults"></div>
+  </div>
+
+  <!-- ══ PROFILE ICON + DROPDOWN ══ -->
+  <div class="profile-icon-wrap" id="profileWrap">
+    <!-- Sync button — left of profile -->
+    <button class="sync-btn" id="syncBtn" onclick="msTriggerManualSync()" title="Sync করুন">
+      <!-- WiFi icon -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1" fill="currentColor"/>
+      </svg>
+      <span class="sync-badge hidden" id="syncBadge">0</span>
+    </button>
+
+    <button class="profile-icon-btn" id="profileIconBtn" onclick="toggleProfileDropdown(event)" title="প্রোফাইল">
+      <img id="profileAvatarThumb" src="img/default-avatar.svg" alt="Profile" />
+    </button>
+
+    <!-- Dropdown popup -->
+    <div class="profile-dropdown hidden" id="profileDropdown">
+      <div class="pd-header">
+        <span class="pd-signed-label">SIGNED IN AS</span>
+        <span class="pd-username" id="pdUsername">লোড হচ্ছে…</span>
+      </div>
+      <div class="pd-divider"></div>
+      <button class="pd-item" id="darkModeBtn" onclick="toggleDarkMode()">
+        <span class="pd-item-icon pd-icon-dark">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </span>
+        <span class="pd-item-text">Dark Mode</span>
+        <span class="pd-toggle" id="darkModeToggle">
+          <span class="pd-toggle-knob"></span>
+        </span>
+      </button>
+      <button class="pd-item" onclick="goToProfile()">
+        <span class="pd-item-icon pd-icon-profile">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </span>
+        <span class="pd-item-text">My Profile</span>
+      </button>
+      <button class="pd-item" onclick="openActiveOfficePanel()">
+        <span class="pd-item-icon pd-icon-office">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        </span>
+        <span class="pd-item-text">Active Office</span>
+        <span class="pd-active-office-badge hidden" id="pdActiveOfficeBadge"></span>
+      </button>
+      <!-- Admin Panel — only visible if user is admin of active office -->
+      <button class="pd-item pd-item-admin hidden" id="pdAdminPanelBtn" onclick="openAdminPanel()">
+        <span class="pd-item-icon pd-icon-admin">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="pd-item-text">Admin Panel</span>
+        <span class="pd-admin-badge" id="pdAdminPendingBadge" style="display:none"></span>
+      </button>
+      <div class="pd-divider"></div>
+      <button class="pd-item pd-item-logout" onclick="doLogout()">
+        <span class="pd-item-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span>
+        <span class="pd-item-text">Logout</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PROFILE BACKDROP ══ -->
+  <div class="ao-backdrop hidden" id="pfPanelBackdrop" onclick="closeProfilePanel()"></div>
+
+  <!-- ══ PROFILE MESSAGE BOX ══ -->
+  <div class="pf-msgbox hidden" id="pfPanel">
+
+    <!-- Header: avatar + name + actions -->
+    <div class="pf-msgbox-header">
+      <div class="pf-msgbox-avatar-wrap">
+        <div class="pf-avatar-ring">
+          <img id="pfAvatar" src="img/default-avatar.svg" alt="Avatar" />
+          <div class="pf-avatar-upload-overlay hidden" id="avatarUploadOverlay">
+            <div class="pf-avatar-spinner"></div>
+          </div>
+          <label class="pf-av-edit-btn" title="ছবি পরিবর্তন">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)" />
+          </label>
+        </div>
+        <div class="pf-msgbox-identity">
+          <h2 class="pf-name" id="pfName">লোড হচ্ছে…</h2>
+          <div class="pf-desig-badge" id="pfDesigBadge">—</div>
+          <div class="pf-office-label" id="pfOfficeLabel">অফিস নেই</div>
+        </div>
+      </div>
+      <div class="pf-msgbox-header-btns">
+        <button class="pf-edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          সম্পাদনা
+        </button>
+        <button class="pf-msgbox-close" onclick="closeProfilePanel()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Username + API Key strip -->
+    <div class="pf-msgbox-strip">
+      <div class="pf-info-block">
+        <div class="pf-info-label">USERNAME</div>
+        <div class="pf-copy-row">
+          <span class="pf-copy-icon">@</span>
+          <input type="text" id="pfUsername" class="pf-copy-input" readonly />
+          <button class="pf-copy-btn" onclick="pfCopyVal('pfUsername')" title="কপি"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+      <div class="pf-info-block">
+        <div class="pf-info-label-row">
+          <span class="pf-info-label">API KEY</span>
+          <button class="pf-api-change-btn" onclick="pfRegenerateApiKey()">Change</button>
+        </div>
+        <div class="pf-copy-row">
+          <input type="text" id="pfApiKey" class="pf-copy-input pf-api-input" readonly />
+          <button class="pf-copy-btn" onclick="pfCopyVal('pfApiKey')" title="কপি"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable body -->
+    <div class="pf-msgbox-body">
+
+      <div class="pf-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Personal Info
+      </div>
+
+      <div id="profileSaveAlert" class="alert hidden pf-save-alert"></div>
+
+      <div class="pf-cards-grid">
+        <!-- Full Name -->
+        <div class="pf-card pf-card-full">
+          <div class="pf-card-icon" style="color:#6366f1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">FULL NAME</div>
+            <div class="pf-card-value" id="dispFullName">—</div>
+            <input type="text" class="pf-card-input hidden" id="editFullName" placeholder="পূর্ণ নাম লিখুন" />
+          </div>
+        </div>
+        <!-- Designation -->
+        <div class="pf-card">
+          <div class="pf-card-icon" style="color:#8b5cf6"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">DESIGNATION</div>
+            <div class="pf-card-value" id="dispDesignation">—</div>
+            <input type="text" class="pf-card-input hidden" id="editDesignation" placeholder="যেমন: JE, AE" />
+          </div>
+        </div>
+        <!-- PBS Name -->
+        <div class="pf-card">
+          <div class="pf-card-icon" style="color:#f59e0b"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">PBS NAME</div>
+            <div class="pf-card-value" id="dispPbsName">—</div>
+            <input type="text" class="pf-card-input hidden" id="editPbsName" placeholder="PBS এর নাম" />
+          </div>
+        </div>
+        <!-- Office Name -->
+        <div class="pf-card pf-card-full">
+          <div class="pf-card-icon" style="color:#0ea5e9"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">OFFICE NAME</div>
+            <div class="pf-card-value" id="dispOfficeName">—</div>
+            <input type="text" class="pf-card-input hidden" id="editOfficeName" placeholder="অফিসের নাম" />
+          </div>
+        </div>
+        <!-- Mobile -->
+        <div class="pf-card">
+          <div class="pf-card-icon" style="color:#22c55e"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">MOBILE</div>
+            <div class="pf-card-value" id="dispMobile">—</div>
+            <input type="tel" class="pf-card-input hidden" id="editMobile" placeholder="01XXXXXXXXX" />
+          </div>
+        </div>
+        <!-- Email -->
+        <div class="pf-card">
+          <div class="pf-card-icon" style="color:#ef4444"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">EMAIL</div>
+            <div class="pf-card-value" id="dispEmail">—</div>
+          </div>
+        </div>
+        <!-- WhatsApp -->
+        <div class="pf-card">
+          <div class="pf-card-icon" style="color:#25d366"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">WHATSAPP</div>
+            <div class="pf-card-value" id="dispWhatsapp">—</div>
+            <input type="tel" class="pf-card-input hidden" id="editWhatsapp" placeholder="01XXXXXXXXX" />
+          </div>
+        </div>
+        <!-- Facebook -->
+        <div class="pf-card pf-card-full pf-card-link">
+          <div class="pf-card-icon" style="color:#1877f2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></div>
+          <div class="pf-card-body">
+            <div class="pf-card-label">FACEBOOK</div>
+            <div class="pf-card-value pf-link-val" id="dispFacebook">—</div>
+            <input type="url" class="pf-card-input hidden" id="editFacebook" placeholder="https://facebook.com/..." />
+          </div>
+          <a id="facebookLink" href="#" target="_blank" class="pf-ext-link hidden">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div><!-- /pf-cards-grid -->
+
+      <!-- Save row (edit mode) -->
+      <div class="pf-save-row hidden" id="pfSaveRow">
+        <button class="pf-save-btn" onclick="saveProfile()">
+          <span id="pfSaveBtnText">সংরক্ষণ করুন</span>
+          <span id="pfSaveLoader" class="btn-loader hidden"></span>
+        </button>
+        <button class="pf-cancel-btn" onclick="toggleEditMode()">বাতিল</button>
+      </div>
+
+      <!-- Security section -->
+      <div class="pf-divider"></div>
+      <div class="pf-section-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Security
+      </div>
+      <div class="pf-security-row">
+        <div class="pf-security-info">
+          <span class="pf-security-label">পাসওয়ার্ড</span>
+          <span class="pf-security-sub">আপনার অ্যাকাউন্টের পাসওয়ার্ড পরিবর্তন করুন</span>
+        </div>
+        <button class="pf-pw-change-btn" onclick="openPasswordModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          পরিবর্তন করুন
+        </button>
+      </div>
+
+    </div><!-- /pf-msgbox-body -->
+  </div><!-- /pf-msgbox -->
+
+  <!-- ══ ACTIVE OFFICE MODAL BACKDROP ══ -->
+  <div class="ao-backdrop hidden" id="aoPanelBackdrop" onclick="closeActiveOfficePanel()"></div>
+
+  <!-- ══ ACTIVE OFFICE MESSAGE BOX ══ -->
+  <div class="ao-msgbox hidden" id="aoPanel">
+
+    <!-- Header -->
+    <div class="ao-msgbox-header">
+      <div class="ao-msgbox-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+        Active Office
+      </div>
+      <button class="ao-msgbox-close" onclick="closeActiveOfficePanel()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Current office strip -->
+    <div class="ao-current-strip" id="aoCurrentCard">
+      <div class="ao-current-label">বর্তমান অফিস</div>
+      <div class="ao-current-name" id="aoCurrentName">লোড হচ্ছে…</div>
+      <div class="ao-current-pbs" id="aoCurrentPbs"></div>
+    </div>
+
+    <!-- Body -->
+    <div class="ao-msgbox-body">
+
+      <!-- PBS + Office selects -->
+      <div class="ao-form">
+        <div class="ao-form-group">
+          <label class="ao-label">PBS বেছে নিন</label>
+          <select id="aoPbsSelect" class="ao-select" onchange="aoLoadOffices()">
+            <option value="">— PBS বেছে নিন —</option>
+          </select>
+        </div>
+        <div class="ao-form-group">
+          <label class="ao-label">অফিস বেছে নিন</label>
+          <select id="aoOfficeSelect" class="ao-select" disabled onchange="aoOfficeSelected()">
+            <option value="">— প্রথমে PBS বেছে নিন —</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Office preview card -->
+      <div class="ao-office-preview hidden" id="aoOfficePreview">
+        <div class="ao-preview-row">
+          <div class="ao-preview-name" id="aoPreviewName"></div>
+          <div class="ao-preview-status" id="aoPreviewStatus"></div>
+        </div>
+        <div class="ao-preview-area" id="aoPreviewArea"></div>
+        <div class="ao-preview-actions" id="aoPreviewActions"></div>
+      </div>
+
+      <div class="ao-alert hidden" id="aoAlert"></div>
+
+    </div>
+  </div>
+
+  <!-- ══ ZOOM LEVEL INDICATOR ══ -->
+  <div class="zoom-indicator" id="zoomIndicator">Z: 12</div>
+
+  <!-- ══ LOCATE ME BUTTON ══ -->
+  <button class="fab-locate" id="fabLocate" onclick="locateMe()" title="আমার অবস্থান">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+      <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" stroke-width="1.5" opacity=".4"/>
+    </svg>
+  </button>
+
+  <!-- ══ ADD METER FLOATING BUTTON ══ -->
+  <button class="fab-add-meter" id="fabAddMeter" onclick="openAddMeterModal()" title="মিটার যোগ করুন">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- ══ ADD METER MODAL BACKDROP ══ -->
+  <div class="am-backdrop hidden" id="amBackdrop" onclick="amBackdropClick()"></div>
+
+  <!-- ══ ADD METER MODAL ══ -->
+  <div class="am-modal hidden" id="amModal">
+    <div class="am-modal-header">
+      <div class="am-modal-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        মিটার পিন যোগ করুন
+      </div>
+      <button class="am-modal-close" onclick="closeAddMeterModal()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="am-modal-body">
+      <div id="amAlert" class="am-alert hidden"></div>
+
+      <!-- Account number -->
+      <div class="am-form-group">
+        <label class="am-label">অ্যাকাউন্ট নম্বর</label>
+        <input type="text" id="amAccInput" class="am-input"
+          placeholder="000-0000" maxlength="8" inputmode="numeric"
+          autocomplete="off" oninput="amFormatAccInput(this)" />
+        <div class="am-input-hint">৩ সংখ্যা – ৪ সংখ্যা (মোট ৭ ডিজিট)</div>
+      </div>
+
+      <!-- Account class -->
+      <div class="am-form-group">
+        <label class="am-label">সংযোগ শ্রেণী</label>
+        <div class="am-class-grid" id="amClassGrid">
+          <button class="am-class-btn active" data-class="h"   onclick="amSelectClass(this)"><img src="img/h.svg"    alt=""> আবাসিক</button>
+          <button class="am-class-btn"        data-class="s"   onclick="amSelectClass(this)"><img src="img/s.svg"    alt=""> দোকান</button>
+          <button class="am-class-btn"        data-class="irr" onclick="amSelectClass(this)"><img src="img/irr.svg"  alt=""> সেচ</button>
+          <button class="am-class-btn"        data-class="ind" onclick="amSelectClass(this)"><img src="img/ind.svg"  alt=""> শিল্প</button>
+          <button class="am-class-btn"        data-class="com" onclick="amSelectClass(this)"><img src="img/com.svg"  alt=""> বাণিজ্য</button>
+          <button class="am-class-btn"        data-class="char" onclick="amSelectClass(this)"><img src="img/char.svg" alt=""> দাতব্য</button>
+        </div>
+      </div>
+
+      <!-- Location: manual lat/lng + GPS + map-click -->
+      <div class="am-form-group">
+        <label class="am-label">লোকেশন</label>
+        <div class="am-latlng-row">
+          <input type="number" id="amLatInput" class="am-latlng-input" placeholder="Latitude"
+            step="any" oninput="amManualLatLng()" onfocus="amLocationFocus()" />
+          <input type="number" id="amLngInput" class="am-latlng-input" placeholder="Longitude"
+            step="any" oninput="amManualLatLng()" onfocus="amLocationFocus()" />
+        </div>
+        <div class="am-loc-actions">
+          <button class="am-loc-btn" id="amLocBtn" onclick="amGetLocation(); event.stopPropagation()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            বর্তমান লোকেশন
+          </button>
+          <button class="am-mapclick-btn" id="amMapClickBtn" onclick="amLocationFocus(); event.stopPropagation()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ম্যাপে ক্লিক
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="am-modal-footer">
+      <button class="am-cancel-btn" onclick="closeAddMeterModal()">বাতিল</button>
+      <button class="am-submit-btn" id="amSubmitBtn" onclick="amSubmitPin()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 0 0-8-8z"/></svg>
+        ম্যাপে যোগ করুন
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ METER DETAIL PANEL BACKDROP ══ -->
+  <div class="ao-backdrop hidden" id="mdPanelBackdrop" onclick="mdClosePanel()"></div>
+
+  <!-- ══ METER DETAIL PANEL ══ -->
+  <div class="md-panel hidden" id="mdPanel">
+
+    <!-- Header -->
+    <div class="md-header">
+      <div class="md-header-left">
+        <span class="md-acc-label" id="mdAccLabel">—</span>
+        <span class="md-class-badge" id="mdClassBadge">—</span>
+        <span class="md-sync-badge" id="mdSyncBadge"></span>
+      </div>
+      <div class="md-header-btns">
+        <button class="md-edit-btn hidden" id="mdEditBtn" onclick="mdToggleEdit()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="md-close-btn" onclick="mdClosePanel()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="md-loading hidden" id="mdLoading">
+      <div class="md-spinner-lg"></div>
+    </div>
+
+    <!-- Body -->
+    <div class="md-body" id="mdBody">
+
+      <div class="md-grid">
+
+        <!-- Customer Name + Village -->
+        <div class="md-row">
+          <div class="md-field-label">Customer Name</div>
+          <div class="md-v" id="mdVName">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdEName" placeholder="Customer name" />
+        </div>
+        <div class="md-row">
+          <div class="md-field-label">Village</div>
+          <div class="md-v" id="mdVVillage">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdEVillage" placeholder="Village" />
+        </div>
+        <div class="md-row">
+          <div class="md-field-label">Route No.</div>
+          <div class="md-v" id="mdVRoute">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdERoute" placeholder="R-01" />
+        </div>
+
+        <!-- Meter No + Manufacturer -->
+        <div class="md-row">
+          <div class="md-field-label">Meter No.</div>
+          <div class="md-v" id="mdVMeterNo">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdEMeterNo" placeholder="MTR-001" />
+        </div>
+        <div class="md-row">
+          <div class="md-field-label">Manufacturer</div>
+          <div class="md-v" id="mdVManufacturer">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdEManufacturer" placeholder="e.g. Landis+Gyr" />
+        </div>
+
+        <!-- Meter Type + Other Info -->
+        <div class="md-row">
+          <div class="md-field-label">Meter Type</div>
+          <div class="md-v" id="mdVType">—</div>
+          <select class="md-select md-e hidden" id="mdEType">
+            <option value="">— Select —</option>
+            <option value="single_phase">Single Phase</option>
+            <option value="3phase">3 Phase</option>
+            <option value="3phase_kvarh">3 Phase kVArh</option>
+            <option value="3phase_2part">3 Phase 2-Part</option>
+            <option value="3phase_netmeter">3 Phase Net Meter</option>
+          </select>
+        </div>
+        <div class="md-row">
+          <div class="md-field-label">Other Info</div>
+          <div class="md-v" id="mdVOther">—</div>
+          <input type="text" class="md-input md-e hidden" id="mdEOther" placeholder="Additional info" />
+        </div>
+
+        <!-- GPS Location + Other Info (same row) -->
+        <div class="md-row">
+          <div class="md-field-label">GPS Location</div>
+          <div class="md-v md-gps-v" id="mdVGps">—</div>
+          <div class="md-gps-row md-e hidden">
+            <input type="text" class="md-input" id="mdEGps" placeholder="23.8103,90.4125" />
+            <button class="md-gps-btn" onclick="mdPickGps()" title="Pick from map">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Edit-only: Connection Class (hidden in view mode) -->
+        <div class="md-row md-row-full md-e hidden">
+          <div class="md-field-label">Connection Class</div>
+          <select class="md-select" id="mdEAccClass">
+            <option value="h">আবাসিক</option>
+            <option value="s">দোকান</option>
+            <option value="irr">সেচ</option>
+            <option value="ind">শিল্প</option>
+            <option value="com">বাণিজ্য</option>
+            <option value="char">দাতব্য</option>
+          </select>
+        </div>
+
+      </div><!-- /md-grid -->
+
+      <!-- Save alert -->
+      <div class="md-alert hidden" id="mdSaveAlert"></div>
+
+      <!-- Save row -->
+      <div class="md-save-row hidden" id="mdSaveRow">
+        <button class="md-save-btn" id="mdSaveBtn" onclick="mdSave()">Save Changes</button>
+        <button class="md-cancel-btn" onclick="mdToggleEdit()">Cancel</button>
+      </div>
+
+      <!-- ══ NOTE SECTION ══ -->
+      <div class="md-note-section hidden" id="mdNoteSection">
+        <div class="md-note-header">
+          <span class="md-note-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            নোট
+          </span>
+          <span class="md-note-count" id="mdNoteCount"></span>
+        </div>
+
+        <!-- Note list -->
+        <div class="md-note-list" id="mdNoteList">
+        </div>
+
+        <!-- Compose box -->
+        <div class="md-note-compose" id="mdNoteCompose">
+          <textarea class="md-note-textarea" id="mdNoteText" placeholder="নোট লিখুন…" rows="2"></textarea>
+          <!-- Image preview strip -->
+          <div class="md-note-img-preview hidden" id="mdNoteImgPreview"></div>
+          <div class="md-note-compose-actions">
+            <label class="md-note-img-btn" title="ছবি যোগ করুন">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <input type="file" id="mdNoteImgInput" accept="image/*" multiple style="display:none" onchange="mdNoteHandleImages(event)">
+            </label>
+            <button class="md-note-reading-btn" id="mdNoteReadingBtn" onclick="mdReadingOpen()" title="রিডিং নিন">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              রিডিং
+            </button>
+            <button class="md-note-send-btn" id="mdNoteSendBtn" onclick="mdNoteSubmit()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              পাঠান
+            </button>
+          </div>
+        </div>
+      </div><!-- /md-note-section -->
+
+    </div><!-- /md-body -->
+  </div><!-- /md-panel -->
+
+  <!-- ══ ADMIN PANEL BACKDROP ══ -->
+  <div class="ao-backdrop hidden" id="apPanelBackdrop" onclick="closeAdminPanel()"></div>
+
+  <!-- ══ ADMIN PANEL ══ -->
+  <div class="ap-panel hidden" id="apPanel">
+    <div class="ap-header">
+      <div class="ap-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Admin Panel
+      </div>
+      <button class="ap-close" onclick="closeAdminPanel()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Office name strip -->
+    <div class="ap-office-strip" id="apOfficeStrip">
+      <div class="ap-office-label">অফিস</div>
+      <div class="ap-office-name" id="apOfficeName">লোড হচ্ছে…</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="ap-tabs">
+      <button class="ap-tab active" id="apTabPending" onclick="apSwitchTab('pending')">
+        অপেক্ষমাণ
+        <span class="ap-tab-badge" id="apPendingCount">0</span>
+      </button>
+      <button class="ap-tab" id="apTabMembers" onclick="apSwitchTab('members')">সদস্য</button>
+      <button class="ap-tab" id="apTabAdd"     onclick="apSwitchTab('add')">যোগ করুন</button>
+    </div>
+
+    <div class="ap-body" id="apBody">
+      <div class="ap-loading" id="apLoading">
+        <div class="ap-spinner"></div>
+      </div>
+
+      <!-- Pending tab -->
+      <div id="apTabContentPending" class="ap-tab-content"></div>
+
+      <!-- Members tab -->
+      <div id="apTabContentMembers" class="ap-tab-content hidden"></div>
+
+      <!-- Add user tab -->
+      <div id="apTabContentAdd" class="ap-tab-content hidden">
+        <div class="ap-form-group">
+          <label class="ap-label">Username</label>
+          <input type="text" id="apAddUsername" class="ap-input" placeholder="user_abc123" autocomplete="off" />
+        </div>
+        <div class="ap-form-group">
+          <label class="ap-label">Role</label>
+          <div class="ap-role-grid">
+            <button class="ap-role-btn active" data-role="viewer"  onclick="apSelectRole(this)">👁 Viewer</button>
+            <button class="ap-role-btn"        data-role="editor"  onclick="apSelectRole(this)">✏️ Editor</button>
+            <button class="ap-role-btn"        data-role="admin"   onclick="apSelectRole(this)">👑 Admin</button>
+          </div>
+        </div>
+        <div id="apAddAlert" class="ap-alert hidden"></div>
+        <button class="ap-submit-btn" onclick="apAddUser()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          সদস্য যোগ করুন
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PASSWORD MODAL ══ -->
+  <div class="modal-backdrop hidden" id="pwModalBackdrop"></div>
+  <div class="modal hidden" id="pwModal">
+    <div class="modal-header">
+      <h3>পাসওয়ার্ড পরিবর্তন</h3>
+      <button class="modal-close" onclick="closePasswordModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pwAlert" class="alert hidden"></div>
+      <div class="form-group">
+        <label>বর্তমান পাসওয়ার্ড</label>
+        <div class="input-eye">
+          <input type="password" id="oldPassword" placeholder="বর্তমান পাসওয়ার্ড" autocomplete="current-password" />
+          <button type="button" class="eye-btn" onclick="pfTogglePass('oldPassword',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>নতুন পাসওয়ার্ড</label>
+        <div class="input-eye">
+          <input type="password" id="newPassword" placeholder="কমপক্ষে ৬ অক্ষর" autocomplete="new-password" />
+          <button type="button" class="eye-btn" onclick="pfTogglePass('newPassword',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>নতুন পাসওয়ার্ড নিশ্চিত করুন</label>
+        <div class="input-eye">
+          <input type="password" id="confirmPassword" placeholder="পুনরায় নতুন পাসওয়ার্ড" autocomplete="new-password" />
+          <button type="button" class="eye-btn" onclick="pfTogglePass('confirmPassword',this)">👁</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closePasswordModal()">বাতিল</button>
+      <button class="btn-primary" id="changePwBtn" onclick="changePassword()" style="width:auto;padding:10px 20px">
+        <span id="changePwBtnText">পরিবর্তন করুন</span>
+        <span id="changePwLoader" class="btn-loader hidden"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ JOIN OFFICE MODAL ══ -->
+  <div class="modal-backdrop hidden" id="joinModalBackdrop" onclick="closeJoinModal()"></div>
+  <div class="modal hidden" id="joinModal">
+    <div class="modal-header">
+      <h3>অফিসে যোগ দিন</h3>
+      <button class="modal-close" onclick="closeJoinModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="joinAlert" class="alert hidden"></div>
+      <div class="form-group">
+        <label>PBS বেছে নিন</label>
+        <select id="pbsSelect" onchange="loadOffices()">
+          <option value="">— PBS বেছে নিন —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>অফিস বেছে নিন</label>
+        <select id="officeSelect" disabled>
+          <option value="">— প্রথমে PBS বেছে নিন —</option>
+        </select>
+      </div>
+      <div id="officePreview" class="office-preview hidden">
+        <div class="op-name" id="opName"></div>
+        <div class="op-area" id="opArea"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeJoinModal()">বাতিল</button>
+      <button class="btn-primary" id="joinBtn" onclick="submitJoinRequest()">
+        <span id="joinBtnText">যোগ দেওয়ার অনুরোধ পাঠান</span>
+        <span id="joinLoader" class="btn-loader hidden"></span>
+      </button>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/meter-store.js"></script>
+  <script src="js/meter-detail.js"></script>
+  <script src="js/home.js"></script>
+
+  <!-- ══ READING MODAL ══ -->
+  <div class="rd-backdrop hidden" id="rdBackdrop" onclick="mdReadingClose()"></div>
+  <div class="rd-modal hidden" id="rdModal">
+    <div class="rd-header">
+      <div class="rd-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        মিটার রিডিং
+      </div>
+      <button class="rd-close" onclick="mdReadingClose()">✕</button>
+    </div>
+    <div class="rd-meter-info" id="rdMeterInfo"></div>
+    <div class="rd-fields" id="rdFields"></div>
+    <div class="rd-prev" id="rdPrev"></div>
+    <div class="rd-footer">
+      <button class="rd-save-btn" id="rdSaveBtn" onclick="mdReadingSave()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        সেভ করুন
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ REPORT PANEL BACKDROP ══ -->
+  <div class="rp-backdrop hidden" id="rpBackdrop" onclick="rpClose()"></div>
+
+  <!-- ══ REPORT PANEL ══ -->
+  <div class="rp-panel hidden" id="rpPanel">
+    <div class="rp-header">
+      <div class="rp-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        রিডিং রিপোর্ট
+      </div>
+      <button class="rp-close" onclick="rpClose()">✕</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="rp-tabs">
+      <button class="rp-tab active" id="rpTabList"    onclick="rpSwitchTab('list')">রিডিং তালিকা</button>
+      <button class="rp-tab"        id="rpTabSummary" onclick="rpSwitchTab('summary')">সারসংক্ষেপ</button>
+    </div>
+
+    <!-- ── LIST TAB ── -->
+    <div class="rp-tab-content" id="rpContentList">
+      <div class="rp-controls">
+        <select class="rp-route-select" id="rpRouteSelect" onchange="rpLoadList()">
+          <option value="">— রুট বেছে নিন —</option>
+        </select>
+        <form class="rp-search-form" autocomplete="off" onsubmit="return false;">
+          <input type="search" class="rp-search" id="rpSearch" placeholder="অ্যাকাউন্ট / মিটার নং…"
+            autocomplete="off" oninput="rpFilterList(this.value)">
+        </form>
+      </div>
+      <div class="rp-table-wrap" id="rpTableWrap">
+        <div class="rp-empty">রুট বেছে নিন</div>
+      </div>
+    </div>
+
+    <!-- ── SUMMARY TAB ── -->
+    <div class="rp-tab-content hidden" id="rpContentSummary">
+      <div class="rp-controls">
+        <select class="rp-route-select" id="rpSummaryRoute" onchange="rpLoadSummary()">
+          <option value="">— রুট বেছে নিন —</option>
+        </select>
+      </div>
+      <div class="rp-summary-wrap" id="rpSummaryWrap">
+        <div class="rp-empty">রুট বেছে নিন</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REPORT FAB ══ -->
+  <button class="fab-report" id="fabReport" onclick="rpOpen()" title="রিডিং রিপোর্ট">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+  </button>
+
+</body>
+</html>

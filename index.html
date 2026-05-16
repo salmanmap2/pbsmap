@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PBS Map — বাংলাদেশের পল্লী বিদ্যুৎ ম্যাপিং সিস্টেম</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/landing.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="js/config.js"></script>
+</head>
+<body class="landing-body">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="nav" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">⚡</div>
+        <span>PBS<strong>Map</strong></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#features">ফিচার</a>
+        <a href="#how">কীভাবে কাজ করে</a>
+        <a href="#about">সম্পর্কে</a>
+        <a href="terms.html">শর্তাবলী</a>
+      </div>
+      <div class="nav-actions">
+        <a href="login.html" class="btn-nav-outline">লগইন</a>
+        <a href="login.html#signup" class="btn-nav-fill">নিবন্ধন করুন</a>
+      </div>
+      <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <!-- Mobile menu -->
+    <div class="nav-mobile hidden" id="navMobile">
+      <a href="#features" onclick="toggleMobileNav()">ফিচার</a>
+      <a href="#how" onclick="toggleMobileNav()">কীভাবে কাজ করে</a>
+      <a href="#about" onclick="toggleMobileNav()">সম্পর্কে</a>
+      <a href="terms.html">শর্তাবলী</a>
+      <a href="login.html" class="mobile-login-btn">লগইন / নিবন্ধন</a>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-circle h1"></div>
+      <div class="hero-circle h2"></div>
+      <div class="hero-circle h3"></div>
+      <!-- Map grid overlay -->
+      <div class="hero-grid"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">🇧🇩 বাংলাদেশ পল্লী বিদ্যুৎ</div>
+      <h1 class="hero-title">
+        PBS মিটার ও অফিস<br/>
+        <span class="hero-highlight">ডিজিটাল ম্যাপিং</span>
+      </h1>
+      <p class="hero-desc">
+        পল্লী বিদ্যুৎ সমিতির কর্মীদের জন্য সম্পূর্ণ ডিজিটাল প্ল্যাটফর্ম।
+        মিটার রিডিং, অফিস ব্যবস্থাপনা ও GPS ট্র্যাকিং এক জায়গায়।
+      </p>
+      <div class="hero-actions">
+        <a href="login.html#signup" class="btn-hero-primary">
+          <span>বিনামূল্যে শুরু করুন</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="login.html" class="btn-hero-outline">লগইন করুন</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">৮০+</div>
+          <div class="stat-label">PBS সমিতি</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">৪০০+</div>
+          <div class="stat-label">অফিস</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-num">লক্ষাধিক</div>
+          <div class="stat-label">মিটার</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="map-mockup">
+        <div class="map-mockup-inner">
+          <div class="map-pin p1">📍</div>
+          <div class="map-pin p2">📍</div>
+          <div class="map-pin p3">⚡</div>
+          <div class="map-pulse"></div>
+          <div class="map-grid-lines"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURES ══ -->
+  <section class="features" id="features">
+    <div class="section-inner">
+      <div class="section-header">
+        <div class="section-badge">ফিচার সমূহ</div>
+        <h2>সব কিছু এক জায়গায়</h2>
+        <p>PBS কর্মীদের দৈনন্দিন কাজ সহজ করতে প্রয়োজনীয় সব টুল</p>
+      </div>
+      <div class="features-grid">
+
+        <div class="feature-card fc-primary">
+          <div class="fc-icon">🗺️</div>
+          <h3>ইন্টারেক্টিভ ম্যাপ</h3>
+          <p>আপনার অফিসের সম্পূর্ণ এলাকা ম্যাপে দেখুন। GPS লোকেশন সহ মিটার ট্র্যাক করুন।</p>
+          <ul class="fc-list">
+            <li>✓ OpenStreetMap ভিত্তিক</li>
+            <li>✓ Custom tile layer সাপোর্ট</li>
+            <li>✓ মিটার মার্কার</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="fc-icon">⚡</div>
+          <h3>মিটার ব্যবস্থাপনা</h3>
+          <p>মিটার যোগ, সম্পাদনা ও রিডিং রেকর্ড করুন। ৪০,০০০+ মিটার সাপোর্ট।</p>
+          <ul class="fc-list">
+            <li>✓ মিটার তথ্য সংরক্ষণ</li>
+            <li>✓ রিডিং ইতিহাস</li>
+            <li>✓ Incremental sync</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="fc-icon">🏢</div>
+          <h3>অফিস ব্যবস্থাপনা</h3>
+          <p>PBS ও অফিস ভিত্তিক দল পরিচালনা। Admin, Editor, Viewer রোল সিস্টেম।</p>
+          <ul class="fc-list">
+            <li>✓ Role-based access</li>
+            <li>✓ Join request system</li>
+            <li>✓ Admin approval</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="fc-icon">📝</div>
+          <h3>নোট ও মন্তব্য</h3>
+          <p>প্রতিটি মিটারে নোট যোগ করুন। অভিযোগ, মেরামত তথ্য সংরক্ষণ করুন।</p>
+          <ul class="fc-list">
+            <li>✓ Category ভিত্তিক নোট</li>
+            <li>✓ Priority সেটিং</li>
+            <li>✓ Creator tracking</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="fc-icon">🔐</div>
+          <h3>নিরাপদ লগইন</h3>
+          <p>Google Sign-In বা ইমেইল/পাসওয়ার্ড দিয়ে লগইন। JWT ভিত্তিক নিরাপদ সেশন।</p>
+          <ul class="fc-list">
+            <li>✓ Google OAuth</li>
+            <li>✓ OTP পাসওয়ার্ড রিসেট</li>
+            <li>✓ Multiple session</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <div class="fc-icon">📱</div>
+          <h3>Offline সাপোর্ট</h3>
+          <p>IndexedDB দিয়ে ডেটা ক্যাশ। ইন্টারনেট ছাড়াও কাজ করুন।</p>
+          <ul class="fc-list">
+            <li>✓ Local data cache</li>
+            <li>✓ Incremental sync</li>
+            <li>✓ Mobile responsive</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ HOW IT WORKS ══ -->
+  <section class="how-section" id="how">
+    <div class="section-inner">
+      <div class="section-header">
+        <div class="section-badge">প্রক্রিয়া</div>
+        <h2>কীভাবে শুরু করবেন</h2>
+        <p>মাত্র কয়েকটি ধাপে শুরু করুন</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">১</div>
+          <div class="step-icon">📧</div>
+          <h3>নিবন্ধন করুন</h3>
+          <p>ইমেইল ও পাসওয়ার্ড দিয়ে বা Google দিয়ে বিনামূল্যে অ্যাকাউন্ট তৈরি করুন।</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card">
+          <div class="step-num">২</div>
+          <div class="step-icon">🏢</div>
+          <h3>অফিসে যোগ দিন</h3>
+          <p>আপনার PBS ও অফিস বেছে নিয়ে যোগ দেওয়ার অনুরোধ পাঠান।</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card">
+          <div class="step-num">৩</div>
+          <div class="step-icon">✅</div>
+          <h3>অনুমোদন পান</h3>
+          <p>অফিস অ্যাডমিন আপনার অনুরোধ অনুমোদন করলে কাজ শুরু করুন।</p>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-card">
+          <div class="step-num">৪</div>
+          <div class="step-icon">🗺️</div>
+          <h3>ম্যাপ ব্যবহার করুন</h3>
+          <p>মিটার রিডিং, নোট ও অফিস ম্যাপ সম্পূর্ণভাবে ব্যবহার করুন।</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ROLES ══ -->
+  <section class="roles-section">
+    <div class="section-inner">
+      <div class="section-header">
+        <div class="section-badge">ভূমিকা</div>
+        <h2>Role ভিত্তিক অ্যাক্সেস</h2>
+        <p>প্রতিটি কর্মীর জন্য উপযুক্ত অনুমতি</p>
+      </div>
+      <div class="roles-grid">
+        <div class="role-card role-admin">
+          <div class="role-badge">Admin</div>
+          <h3>অ্যাডমিন</h3>
+          <ul>
+            <li>✓ সব কিছু দেখা ও সম্পাদনা</li>
+            <li>✓ ব্যবহারকারী অনুমোদন</li>
+            <li>✓ মিটার যোগ ও সম্পাদনা</li>
+            <li>✓ রিডিং সম্পাদনা</li>
+            <li>✓ নোট পরিচালনা</li>
+          </ul>
+        </div>
+        <div class="role-card role-editor">
+          <div class="role-badge">Editor</div>
+          <h3>এডিটর</h3>
+          <ul>
+            <li>✓ মিটার যোগ ও সম্পাদনা</li>
+            <li>✓ রিডিং সম্পাদনা</li>
+            <li>✓ নোট যোগ ও মুছে ফেলা</li>
+            <li>✓ সব তথ্য দেখা</li>
+            <li>✗ ব্যবহারকারী পরিচালনা</li>
+          </ul>
+        </div>
+        <div class="role-card role-viewer">
+          <div class="role-badge">Viewer</div>
+          <h3>ভিউয়ার</h3>
+          <ul>
+            <li>✓ সব তথ্য দেখা</li>
+            <li>✓ নতুন রিডিং যোগ</li>
+            <li>✓ নোট যোগ</li>
+            <li>✗ মিটার সম্পাদনা</li>
+            <li>✗ রিডিং সম্পাদনা</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ABOUT / API ══ -->
+  <section class="about-section" id="about">
+    <div class="section-inner about-grid">
+      <div class="about-text">
+        <div class="section-badge">API</div>
+        <h2>Developer API</h2>
+        <p>
+          PBS Map একটি সম্পূর্ণ REST API প্রদান করে। আপনার নিজস্ব অ্যাপ্লিকেশন তৈরি করুন
+          আমাদের API ব্যবহার করে।
+        </p>
+        <ul class="about-list">
+          <li>
+            <span class="al-icon">🔑</span>
+            <div>
+              <strong>API Key Authentication</strong>
+              <p>প্রতিটি ব্যবহারকারীর নিজস্ব API key আছে</p>
+            </div>
+          </li>
+          <li>
+            <span class="al-icon">📡</span>
+            <div>
+              <strong>RESTful Endpoints</strong>
+              <p>মিটার, রিডিং, নোট, অফিস সব কিছুর API</p>
+            </div>
+          </li>
+          <li>
+            <span class="al-icon">🔄</span>
+            <div>
+              <strong>Incremental Sync</strong>
+              <p>last_time parameter দিয়ে শুধু নতুন ডেটা নিন</p>
+            </div>
+          </li>
+        </ul>
+        <a href="login.html" class="btn-about">API ব্যবহার শুরু করুন →</a>
+      </div>
+      <div class="about-code">
+        <div class="code-window">
+          <div class="code-titlebar">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="code-title">api-example.js</span>
+          </div>
+          <pre class="code-body"><code><span class="c-comment">// মিটার লিস্ট নিন</span>
+<span class="c-keyword">const</span> res = <span class="c-keyword">await</span> fetch(
+  <span class="c-string">'/api/meter/all'</span>, {
+  method: <span class="c-string">'POST'</span>,
+  headers: {
+    <span class="c-string">'Authorization'</span>: <span class="c-string">`Bearer ${token}`</span>,
+    <span class="c-string">'Content-Type'</span>: <span class="c-string">'application/json'</span>
+  },
+  body: JSON.stringify({
+    office_id: <span class="c-string">'12101'</span>,
+    last_time: <span class="c-string">'2024-01-01T00:00:00'</span>
+  })
+});
+
+<span class="c-keyword">const</span> { data } = <span class="c-keyword">await</span> res.json();
+<span class="c-comment">// data = [{ account_id, meter_number, ... }]</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CTA ══ -->
+  <section class="cta-section">
+    <div class="cta-inner">
+      <h2>আজই শুরু করুন</h2>
+      <p>বিনামূল্যে নিবন্ধন করুন এবং আপনার অফিসের ডিজিটাল ম্যাপিং শুরু করুন</p>
+      <div class="cta-actions">
+        <a href="login.html#signup" class="btn-cta-primary">বিনামূল্যে নিবন্ধন করুন</a>
+        <a href="login.html" class="btn-cta-outline">লগইন করুন</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="logo-icon-sm">⚡</span>
+          <span>PBS<strong>Map</strong></span>
+        </div>
+        <p>বাংলাদেশের পল্লী বিদ্যুৎ সমিতির জন্য ডিজিটাল ম্যাপিং সিস্টেম।</p>
+      </div>
+      <div class="footer-links-grid">
+        <div class="footer-col">
+          <h4>প্ল্যাটফর্ম</h4>
+          <a href="login.html#signup">নিবন্ধন</a>
+          <a href="login.html">লগইন</a>
+          <a href="home.html">ম্যাপ</a>
+        </div>
+        <div class="footer-col">
+          <h4>তথ্য</h4>
+          <a href="#features">ফিচার</a>
+          <a href="#how">কীভাবে কাজ করে</a>
+          <a href="#about">API</a>
+        </div>
+        <div class="footer-col">
+          <h4>আইনি</h4>
+          <a href="terms.html">শর্তাবলী</a>
+          <a href="terms.html#privacy">গোপনীয়তা নীতি</a>
+          <a href="terms.html#contact">যোগাযোগ</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© ২০২৫ PBS Map। সর্বস্বত্ব সংরক্ষিত।</p>
+    </div>
+  </footer>
+
+  <script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Mobile nav toggle
+    function toggleMobileNav() {
+      document.getElementById('navMobile').classList.toggle('hidden');
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+      });
+    });
+
+    // Check if already logged in → redirect to home
+    async function checkLogin() {
+      if (typeof openDB === 'undefined') return;
+      try {
+        const session = await getSession();
+        if (session && session.token) {
+          // Show "Go to App" button instead of signup
+          document.querySelectorAll('a[href="login.html#signup"]').forEach(a => {
+            a.href = 'home.html';
+            a.textContent = 'অ্যাপে যান →';
+          });
+          document.querySelectorAll('a[href="login.html"]').forEach(a => {
+            a.href = 'home.html';
+            a.textContent = 'অ্যাপে যান';
+          });
+        }
+      } catch(e) {}
+    }
+  </script>
+  <script src="js/db.js"></script>
+  <script>checkLogin();</script>
+</body>
+</html>

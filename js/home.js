@@ -80,7 +80,13 @@ function applyAvatarAndBadge(profile) {
 
 /* ══ MAP ══ */
 function initMap() {
-  _map = L.map('map', { center: [23.8103, 90.4125], zoom: 12, zoomControl: false });
+  _map = L.map('map', {
+    center:      [23.8103, 90.4125],
+    zoom:        12,
+    zoomControl: false,
+    tap:         false,   // Leaflet tap handler বন্ধ — mobile touch conflict এড়াতে
+    tapTolerance: 15,
+  });
 
   _tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

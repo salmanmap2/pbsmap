@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PBS Map — লগইন</title>
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a2332" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PBS Map" />
+  <link rel="apple-touch-icon" href="img/icon-192.svg" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/auth.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -149,5 +157,10 @@
   <script src="js/db.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>

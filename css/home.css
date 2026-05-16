@@ -16,7 +16,11 @@ body.dark-mode .home-body {
 
 /* ── Map ── */
 .map-container { position: fixed; inset: 0; z-index: 0; }
-#map { width: 100%; height: 100%; }
+#map {
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* browser default pan/zoom বন্ধ — Leaflet নিজে handle করবে */
+}
 
 /* Tile pane bg — prevents bg color showing at tile edges */
 #map .leaflet-tile-pane,
@@ -1861,6 +1865,94 @@ body:not(.dark-mode) .md-cancel-btn { background: #f1f5f9; border-color: #e2e8f0
   .md-panel { width: 100vw; max-width: 100vw; max-height: 100vh; border-radius: 16px 16px 0 0; top: auto; bottom: 0; left: 0; transform: none; }
   .md-grid  { grid-template-columns: 1fr; }
   .md-row-full { grid-column: 1; }
+}
+
+/* ══════════════════════════════════════════════
+   MOBILE RESPONSIVE
+   ══════════════════════════════════════════════ */
+@media (max-width: 600px) {
+
+  /* Search box — center করো, map touch area বাঁচাও */
+  .srch-wrap {
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 120px); /* profile icon এর জায়গা বাদ দিয়ে */
+    max-width: 280px;
+  }
+
+  /* FAB buttons — bottom-right corner এ stack করো */
+  .fab-add-meter {
+    bottom: 24px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+  .fab-locate {
+    bottom: 80px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+  }
+
+  /* Report FAB — bottom-left এ নিয়ে যাও যাতে right side clear থাকে */
+  .fab-report {
+    bottom: 24px;
+    right: auto;
+    left: 0;
+    top: auto;
+    transform: none;
+    border-radius: 0 8px 8px 0;
+    border-left: none;
+    border-right: 1px solid rgba(255,255,255,.12);
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Sync button */
+  .sync-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Report panel — full screen */
+  .rp-panel {
+    width: 100vw;
+  }
+
+  /* Reading modal — full width */
+  .rd-modal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 16px 16px 0 0;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+  }
+
+  /* Admin panel — full screen */
+  .ap-panel {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+  }
+
+  /* Active office / join modal */
+  .ao-msgbox,
+  .pf-msgbox {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+  }
 }
 
 /* ══════════════════════════════════════════════

@@ -1,0 +1,26 @@
+{
+  "name": "PBS Map",
+  "short_name": "PBSMap",
+  "description": "বাংলাদেশের পল্লী বিদ্যুৎ মিটার ম্যাপিং সিস্টেম",
+  "start_url": "/home.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d1117",
+  "theme_color": "#1a2332",
+  "lang": "bn",
+  "icons": [
+    {
+      "src": "img/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

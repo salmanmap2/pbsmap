@@ -47,28 +47,38 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+/** Response টা cache করার যোগ্য কিনা */
+function cacheable(res) {
+  if (!res) return false;
+  if (!res.ok) return false;           // 4xx/5xx বাদ
+  if (res.redirected) return false;    // redirect হয়েছে — cache করা যাবে না
+  if (res.type === 'opaque') return false;
+  if (res.type === 'opaqueredirect') return false;
+  return true;
+}
+
 self.addEventListener('fetch', e => {
   const { request } = e;
 
-  // http/https এবং GET only
+  // http/https এবং GET only — বাকি সব SW bypass
   if (!request.url.startsWith('http') || request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // API calls — SW bypass, সরাসরি network
+  // API calls — SW bypass
   if (url.pathname.startsWith('/api/')) return;
 
-  // Map tiles (OSM) — SW bypass, IndexedDB তে আলাদাভাবে cache হয়
+  // Map tiles — SW bypass (IndexedDB তে আলাদাভাবে cache হয়)
   if (url.hostname.includes('tile.openstreetmap.org')) return;
 
-  // Same-origin: cache-first
+  // Same-origin: cache-first, network fallback
   if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(request).then(cached => {
         if (cached) return cached;
-        return fetch(request).then(res => {
-          // clone আগে, return পরে
-          if (res.ok) {
+
+        return fetch(request, { redirect: 'follow' }).then(res => {
+          if (cacheable(res)) {
             const toCache = res.clone();
             caches.open(CACHE_NAME).then(c => c.put(request, toCache));
           }
@@ -80,10 +90,9 @@ self.addEventListener('fetch', e => {
   }
 
   // External (Leaflet CDN, Google Fonts): network-first, cache fallback
-  // opaque response (cross-origin no-cors) cache করা safe না — skip
   e.respondWith(
-    fetch(request).then(res => {
-      if (res.ok && res.type !== 'opaque') {
+    fetch(request, { redirect: 'follow' }).then(res => {
+      if (cacheable(res)) {
         const toCache = res.clone();
         caches.open(CACHE_NAME).then(c => c.put(request, toCache));
       }
